@@ -7,3 +7,32 @@
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 
 // Put your code here.
+
+// Set R2 to 0 on initialization
+  @0
+  D=A
+  @R2
+  M=D
+
+(LOOP)
+// End if R1==0
+  @R1
+  D=M
+  @END
+  D;JEQ
+
+// Decrement R1
+  @R1
+  M=M-1
+
+// Add R0 to R2
+  @R0
+  D=M
+  @R2
+  M=M+D
+  @LOOP
+  0;JMP
+
+(END)
+  @END
+  0;JMP
