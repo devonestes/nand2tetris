@@ -1,5 +1,5 @@
 defmodule Parser do
-  def parse({:ok, commands}) do
+  def parse(commands) do
     commands
     |> String.split("\r\n", trim: true)
     |> Enum.map(&parse_line/1)
@@ -11,11 +11,24 @@ defmodule Parser do
   defp parse_line("push" <> " " <> rest), do: {:C_PUSH, parse_segment(rest)}
   defp parse_line(_), do: {:NOOP, []}
 
-  defp parse_segment("constant" <> " " <> num), do: [:CONSTANT, String.to_integer(num)]
-  defp parse_segment("local" <> " " <> num), do: [:LOCAL, String.to_integer(num)]
-  defp parse_segment("argument" <> " " <> num), do: [:ARGUMENT, String.to_integer(num)]
-  defp parse_segment("this" <> " " <> num), do: [:THIS, String.to_integer(num)]
-  defp parse_segment("that" <> " " <> num), do: [:THAT, String.to_integer(num)]
-  defp parse_segment("temp" <> " " <> num), do: [:TEMP, String.to_integer(num)]
+  @valid_segments [
+    "constant",
+    "local",
+    "argument",
+    "this",
+    "that",
+    "temp",
+    "pointer",
+    "static"
+  ]
+
+  for segment_name <- @valid_segments do
+    atom_name = segment_name |> String.upcase() |> String.to_atom
+
+    defp parse_segment(unquote(segment_name) <> " " <> num) do
+      [unquote(atom_name), String.to_integer(num)]
+    end
+  end
+
   defp parse_segment(_), do: []
 end

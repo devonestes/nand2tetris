@@ -92,6 +92,28 @@ defmodule Generator do
     """
   end
 
+  def generate_instruction({:C_PUSH, [:POINTER, 0]}) do
+    """
+    @THIS
+    D=M // Set pointer for THIS to D register
+    @SP
+    #{dereference_pointer()}
+    M=D // Add pointer to THIS to top of stack
+    #{increment_sp()}
+    """
+  end
+
+  def generate_instruction({:C_PUSH, [:POINTER, 1]}) do
+    """
+    @THAT
+    D=M // Set pointer for THAT to D register
+    @SP
+    #{dereference_pointer()}
+    M=D // Add pointer to THAT to top of stack
+    #{increment_sp()}
+    """
+  end
+
   def generate_instruction({:C_POP, [:TEMP, num]}) do
     """
     // pop temp #{num}
@@ -142,6 +164,22 @@ defmodule Generator do
     #{cache_segment_address()}
     #{pop_into_d_register()}
     #{store_d_register_in_cached_segment_address()}
+    """
+  end
+
+  def generate_instruction({:C_POP, [:POINTER, 0]}) do
+    """
+    #{pop_into_d_register()}
+    @THIS // Load pointer in A register
+    M=D // Change pointer address to poped value
+    """
+  end
+
+  def generate_instruction({:C_POP, [:POINTER, 1]}) do
+    """
+    #{pop_into_d_register()}
+    @THAT // Load pointer in A register
+    M=D // Change pointer address to poped value
     """
   end
 
