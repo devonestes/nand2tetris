@@ -2,14 +2,24 @@ defmodule Parser do
   def parse(commands, file_name) do
     commands
     |> String.split("\r\n", trim: true)
-    |> Enum.map(fn command -> parse_line(command, file_name) end)
+    |> Enum.with_index()
+    |> Enum.map(fn {command, line_no} ->
+      parse_line(command, file_name, line_no)
+    end)
   end
 
-  defp parse_line("add", _), do: {:C_ADD, []}
-  defp parse_line("sub", _), do: {:C_SUB, []}
-  defp parse_line("pop" <> " " <> rest, file_name), do: {:C_POP, parse_segment(rest, file_name)}
-  defp parse_line("push" <> " " <> rest, file_name), do: {:C_PUSH, parse_segment(rest, file_name)}
-  defp parse_line(_, _), do: {:NOOP, []}
+  defp parse_line("add", _, _), do: {:C_ADD, []}
+  defp parse_line("sub", _, _), do: {:C_SUB, []}
+  defp parse_line("neg", _, _), do: {:C_NEG, []}
+  defp parse_line("and", _, _), do: {:C_AND, []}
+  defp parse_line("or", _, _), do: {:C_OR, []}
+  defp parse_line("not", _, _), do: {:C_NOT, []}
+  defp parse_line("eq", _, line_no), do: {:C_EQ, [line_no]}
+  defp parse_line("lt", _, line_no), do: {:C_LT, [line_no]}
+  defp parse_line("gt", _, line_no), do: {:C_GT, [line_no]}
+  defp parse_line("pop" <> " " <> rest, file_name, _), do: {:C_POP, parse_segment(rest, file_name)}
+  defp parse_line("push" <> " " <> rest, file_name, _), do: {:C_PUSH, parse_segment(rest, file_name)}
+  defp parse_line(_, _, _), do: {:NOOP, []}
 
   @valid_segments [
     "constant",
