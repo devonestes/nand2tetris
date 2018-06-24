@@ -8,32 +8,26 @@ defmodule Generator do
   def generate_instruction({:C_ADD, _}) do
     """
     // add
-    @SP // A=0, M=258
-    M=M-1 // M=257
-    A=M // A=257, M=contents of 257 (top element in stack)
-    D=M // D=contents of 257 (top element in stack)
-    @SP // A=0, M=257
-    M=M-1 // A=H, M=256
-    A=M // A=256, M=contents of 256 (second element in stack)
-    M=M+D // 256=contents of 256 + contents of 257 (sum of top values)
-    @SP // A=0, M=256
-    M=M+1 // M=257
+    #{decrement_sp()}
+    #{dereference_pointer()}
+    D=M // D=M[257]
+    #{decrement_sp()}
+    #{dereference_pointer()}
+    M=M+D // M[256]=M[256] + M[257]
+    #{increment_sp()}
     """
   end
 
   def generate_instruction({:C_SUB, _}) do
     """
     // sub
-    @SP // A=0, M=258
-    M=M-1 // A=0, M=257
-    A=M // A=257, M=contents of 257 (top element in stack)
-    D=M // D=contents of 257 (top element in stack)
-    @SP // A=0, M=257
-    M=M-1 // M[0]=256
-    A=M // A=256, M=contents of 256 (second element in stack)
-    M=M-D // M[256]=contents of 256 - contents of 257 (difference of top values)
-    @SP // A=0, M[0]=256
-    M=M+1 // A=0, M[0]=257
+    #{decrement_sp()}
+    #{dereference_pointer()}
+    D=M // D=M[257]
+    #{decrement_sp()}
+    #{dereference_pointer()}
+    M=M-D // M[256]=M[256] - M[257]
+    #{increment_sp()}
     """
   end
 
@@ -42,11 +36,10 @@ defmodule Generator do
     // push constant #{num}
     @#{num} // A=num
     D=A // D=num
-    @SP // A=0, M=256
-    A=M // A=256, M=*256
-    M=D // *256=num
-    @SP // A=0, M=256
-    M=M+1 // M=257
+    @SP
+    #{dereference_pointer()}
+    M=D // M[256]=num
+    #{increment_sp()}
     """
   end
 
@@ -55,11 +48,7 @@ defmodule Generator do
     // push temp #{num}
     @#{num + 5} // A=temp num, M=contents of temp address
     D=M // D=contents of temp address
-    @SP // A=0, M=256
-    A=M // A=256, M=contents of 256
-    M=D // 256=contents of temp address
-    @SP // A=0, M=256
-    M=M+1 // A=0, M=257
+    #{push_from_d_register()}
     """
   end
 
@@ -67,15 +56,9 @@ defmodule Generator do
     """
     // push local #{num}
     @LCL // A=local pointer, M=local base address
-    D=M // D=local base address
-    @#{num} // A=local offset, M=?
-    A=D+A // A=local base address + local offset, M=contents of local 2 or whatever
+    #{goto_segment_address(num)}
     D=M // D=contents of local address
-    @SP // A=0, M=256
-    A=M // A=256, M=contents of 256
-    M=D // M=contents of local address
-    @SP // A=0, M=256
-    M=M+1 // A=0, M=257
+    #{push_from_d_register()}
     """
   end
 
@@ -83,15 +66,9 @@ defmodule Generator do
     """
     // push argument #{num}
     @ARG // A=arg pointer, M=arg base address
-    D=M // D=arg base address
-    @#{num} // A=arg offset, M=?
-    A=D+A // A=arg base address + arg offset, M=contents of arg 2 or whatever
+    #{goto_segment_address(num)}
     D=M // D=contents of arg address
-    @SP // A=0, M=256
-    A=M // A=256, M=contents of 256
-    M=D // 256=contents of arg address
-    @SP // A=0, M=256
-    M=M+1 // A=0, M=257
+    #{push_from_d_register()}
     """
   end
 
@@ -99,15 +76,9 @@ defmodule Generator do
     """
     // push this #{num}
     @THIS // A=this pointer, M=this base address
-    D=M // D=this base address
-    @#{num} // A=this offset, M=?
-    A=D+A // A=this base + offset, M=contents of selected address
-    D=M // D=contents of selected this address
-    @SP // A=0, M=256
-    A=M // A=256, M=contents of 256
-    M=D // 256=contents of selected this address
-    @SP // A=0, M=256
-    M=M+1 // M=257
+    #{goto_segment_address(num)}
+    D=M // D=contents of this address
+    #{push_from_d_register()}
     """
   end
 
@@ -115,121 +86,81 @@ defmodule Generator do
     """
     // push that #{num}
     @THAT
-    D=M
-    @#{num}
-    A=D+A
-    D=M
-    @SP
-    A=M
-    M=D
-    @SP
-    M=M+1
+    #{goto_segment_address(num)}
+    D=M // D=contents of that address
+    #{push_from_d_register()}
     """
   end
 
   def generate_instruction({:C_POP, [:TEMP, num]}) do
     """
     // pop temp #{num}
-    @SP // A=0, M=256
-    M=M-1 // A=0, M=255
-    A=M // A=255, M=contents of 255
-    D=M // D=contents of 255
+    #{pop_into_d_register()}
     @#{num + 5} // A=selected temp address, M=contents of selected temp address
-    M=D // M=contents of 255
+    M=D // M[selected temp address]=popped data from d register
     """
   end
 
   def generate_instruction({:C_POP, [:LOCAL, num]}) do
     """
     // pop local #{num}
-    @SP // A=0, M=256
-    M=M-1 // A=0, M=255
-    A=M // A=255, M=contents of 255 (top of stack)
-    D=M // D=popped value
-    @R13 // A=13, M=contents of R13
-    M=D // A=13, M=popped value
-    @#{num} // A=local offset, M=?
-    D=A // D=local offset
-    @LCL // A=local pointer, M=local base address
-    D=D+M // D=local base address + local offset (address where the popped value in R13 is going)
-    @R14 // A=14, M=contents of R14
-    M=D // M=selected local address
-    @R13 // A=13, M=contents of R13 (popped value)
-    D=M // D=popped value
-    @R14 // A=14, M=selected local address
-    A=M // A=selected local address
-    M=D // M=popped value
+    @LCL
+    #{goto_segment_address(num)}
+    #{cache_segment_address()}
+    #{pop_into_d_register()}
+    #{store_d_register_in_cached_segment_address()}
     """
   end
 
   def generate_instruction({:C_POP, [:ARGUMENT, num]}) do
     """
     // pop argument #{num}
-    @SP // A=0, M=256
-    M=M-1 // A=0, M=255
-    A=M // A=255, M=contents of 255 (top of stack)
-    D=M // D=popped value
-    @R13 // A=13, M=contents of R13
-    M=D // A=13, M=popped value
-    @#{num} // A=local offset, M=?
-    D=A // D=local offset
-    @ARG // A=arg pointer, M=arg base address
-    D=D+M // D=arg base address + arg offset (address where the popped value in R13 is going)
-    @R14 // A=14, M=contents of R14
-    M=D // M=selected arg address
-    @R13 // A=13, M=contents of R13 (popped value)
-    D=M // D=popped value
-    @R14 // A=14, M=selected arg address
-    A=M // A=selected arg address
-    M=D // M=popped value
+    @ARG
+    #{goto_segment_address(num)}
+    #{cache_segment_address()}
+    #{pop_into_d_register()}
+    #{store_d_register_in_cached_segment_address()}
     """
   end
 
   def generate_instruction({:C_POP, [:THIS, num]}) do
     """
     // pop this #{num}
-    @SP // A=0, M=256
-    M=M-1 // A=0, M=255
-    A=M // A=255, M=contents of 255 (top of stack)
-    D=M // D=popped value
-    @R13 // A=13, M=contents of R13
-    M=D // A=13, M=popped value
-    @#{num} // A=local offset, M=?
-    D=A // D=local offset
-    @THIS // A=this pointer, M=this base address
-    D=D+M // D=this base address + this offset (address where the popped value in R13 is going)
-    @R14 // A=14, M=contents of R14
-    M=D // M=selected this address
-    @R13 // A=13, M=contents of R13 (popped value)
-    D=M // D=popped value
-    @R14 // A=14, M=selected this address
-    A=M // A=selected this address
-    M=D // M=popped value
+    @THIS
+    #{goto_segment_address(num)}
+    #{cache_segment_address()}
+    #{pop_into_d_register()}
+    #{store_d_register_in_cached_segment_address()}
     """
   end
 
   def generate_instruction({:C_POP, [:THAT, num]}) do
     """
     // pop that #{num}
-    @SP // A=0, M=256
-    M=M-1 // A=0, M=255
-    A=M // A=255, M=contents of 255 (top of stack)
-    D=M // D=popped value
-    @R13 // A=13, M=contents of R13
-    M=D // A=13, M=popped value
-    @#{num} // A=local offset, M=?
-    D=A // D=local offset
-    @THAT // A=that pointer, M=that base address
-    D=D+M // D=that base address + that offset (address where the popped value in R13 is going)
-    @R14 // A=14, M=contents of R14
-    M=D // M=selected that address
-    @R13 // A=13, M=contents of R13 (popped value)
-    D=M // D=popped value
-    @R14 // A=14, M=selected that address
-    A=M // A=selected that address
-    M=D // M=popped value
+    @THAT
+    #{goto_segment_address(num)}
+    #{cache_segment_address()}
+    #{pop_into_d_register()}
+    #{store_d_register_in_cached_segment_address()}
     """
   end
 
   def generate_instruction(_instruction), do: ""
+
+  defp push_from_d_register(), do: "@SP\n#{dereference_pointer()}\nM=D\n#{increment_sp()}"
+
+  defp pop_into_d_register(), do: "#{decrement_sp()}\n#{dereference_pointer()}\nD=M"
+
+  defp increment_sp(), do: "@SP\nM=M+1"
+
+  defp decrement_sp(), do: "@SP\nM=M-1"
+
+  defp dereference_pointer(), do: "A=M"
+
+  defp goto_segment_address(num), do: "D=M\n@#{num}\nA=D+A"
+
+  @cache_address "@R14"
+  defp cache_segment_address(), do: "D=A\n#{@cache_address}\nM=D"
+
+  defp store_d_register_in_cached_segment_address(), do: "#{@cache_address}\n#{dereference_pointer()}\nM=D"
 end
