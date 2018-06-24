@@ -31,7 +31,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:CONSTANT, num]}) do
+  def generate_instruction({:C_PUSH, [:CONSTANT, num, _]}) do
     """
     // push constant #{num}
     @#{num} // A=num
@@ -43,7 +43,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:TEMP, num]}) do
+  def generate_instruction({:C_PUSH, [:TEMP, num, _]}) do
     """
     // push temp #{num}
     @#{num + 5} // A=temp num, M=contents of temp address
@@ -52,7 +52,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:LOCAL, num]}) do
+  def generate_instruction({:C_PUSH, [:LOCAL, num, _]}) do
     """
     // push local #{num}
     @LCL // A=local pointer, M=local base address
@@ -62,7 +62,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:ARGUMENT, num]}) do
+  def generate_instruction({:C_PUSH, [:ARGUMENT, num, _]}) do
     """
     // push argument #{num}
     @ARG // A=arg pointer, M=arg base address
@@ -72,7 +72,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:THIS, num]}) do
+  def generate_instruction({:C_PUSH, [:THIS, num, _]}) do
     """
     // push this #{num}
     @THIS // A=this pointer, M=this base address
@@ -82,7 +82,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:THAT, num]}) do
+  def generate_instruction({:C_PUSH, [:THAT, num, _]}) do
     """
     // push that #{num}
     @THAT
@@ -92,7 +92,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:POINTER, 0]}) do
+  def generate_instruction({:C_PUSH, [:POINTER, 0, _]}) do
     """
     @THIS
     D=M // Set pointer for THIS to D register
@@ -103,7 +103,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_PUSH, [:POINTER, 1]}) do
+  def generate_instruction({:C_PUSH, [:POINTER, 1, _]}) do
     """
     @THAT
     D=M // Set pointer for THAT to D register
@@ -114,7 +114,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:TEMP, num]}) do
+  def generate_instruction({:C_POP, [:TEMP, num, _]}) do
     """
     // pop temp #{num}
     #{pop_into_d_register()}
@@ -123,7 +123,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:LOCAL, num]}) do
+  def generate_instruction({:C_POP, [:LOCAL, num, _]}) do
     """
     // pop local #{num}
     @LCL
@@ -134,7 +134,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:ARGUMENT, num]}) do
+  def generate_instruction({:C_POP, [:ARGUMENT, num, _]}) do
     """
     // pop argument #{num}
     @ARG
@@ -145,7 +145,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:THIS, num]}) do
+  def generate_instruction({:C_POP, [:THIS, num, _]}) do
     """
     // pop this #{num}
     @THIS
@@ -156,7 +156,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:THAT, num]}) do
+  def generate_instruction({:C_POP, [:THAT, num, _]}) do
     """
     // pop that #{num}
     @THAT
@@ -167,7 +167,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:POINTER, 0]}) do
+  def generate_instruction({:C_POP, [:POINTER, 0, _]}) do
     """
     #{pop_into_d_register()}
     @THIS // Load pointer in A register
@@ -175,7 +175,7 @@ defmodule Generator do
     """
   end
 
-  def generate_instruction({:C_POP, [:POINTER, 1]}) do
+  def generate_instruction({:C_POP, [:POINTER, 1, _]}) do
     """
     #{pop_into_d_register()}
     @THAT // Load pointer in A register
@@ -200,5 +200,6 @@ defmodule Generator do
   @cache_address "@R14"
   defp cache_segment_address(), do: "D=A\n#{@cache_address}\nM=D"
 
-  defp store_d_register_in_cached_segment_address(), do: "#{@cache_address}\n#{dereference_pointer()}\nM=D"
+  defp store_d_register_in_cached_segment_address(),
+    do: "#{@cache_address}\n#{dereference_pointer()}\nM=D"
 end
