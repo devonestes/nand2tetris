@@ -3,8 +3,8 @@ defmodule Pop do
     """
     // pop temp #{num}
     #{Helpers.pop_into_d_register()}
-    @#{num + 5} // A=selected temp address, M=contents of selected temp address
-    M=D // M[selected temp address]=popped data from d register
+    @#{num + 5}
+    M=D
     """
   end
 
@@ -55,16 +55,16 @@ defmodule Pop do
   def pop([:POINTER, 0, _]) do
     """
     #{Helpers.pop_into_d_register()}
-    @THIS // Load pointer in A register
-    M=D // Change pointer address to poped value
+    @THIS
+    M=D
     """
   end
 
   def pop([:POINTER, 1, _]) do
     """
     #{Helpers.pop_into_d_register()}
-    @THAT // Load pointer in A register
-    M=D // Change pointer address to poped value
+    @THAT
+    M=D
     """
   end
 

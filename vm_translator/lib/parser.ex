@@ -17,8 +17,30 @@ defmodule Parser do
   defp parse_line("eq", _, line_no), do: {:C_EQ, [line_no]}
   defp parse_line("lt", _, line_no), do: {:C_LT, [line_no]}
   defp parse_line("gt", _, line_no), do: {:C_GT, [line_no]}
-  defp parse_line("pop" <> " " <> rest, file_name, _), do: {:C_POP, parse_segment(rest, file_name)}
-  defp parse_line("push" <> " " <> rest, file_name, _), do: {:C_PUSH, parse_segment(rest, file_name)}
+
+  defp parse_line("pop" <> " " <> rest, file_name, _) do
+    {:C_POP, parse_segment(rest, file_name)}
+  end
+
+  defp parse_line("push" <> " " <> rest, file_name, _) do
+    {:C_PUSH, parse_segment(rest, file_name)}
+  end
+
+  defp parse_line("goto" <> " " <> label, file_name, _) do
+    [label] = Regex.run(~r/\w+/, label)
+    {:C_GOTO, [label, file_name]}
+  end
+
+  defp parse_line("if-goto" <> " " <> label, file_name, _) do
+    [label] = Regex.run(~r/\w+/, label)
+    {:C_IF_GOTO, [label, file_name]}
+  end
+
+  defp parse_line("label" <> " " <> label, file_name, _) do
+    [label] = Regex.run(~r/\w+/, label)
+    {:C_LABEL, [label, file_name]}
+  end
+
   defp parse_line(_, _, _), do: {:NOOP, []}
 
   @valid_segments [
@@ -36,6 +58,7 @@ defmodule Parser do
     atom_name = segment_name |> String.upcase() |> String.to_atom()
 
     defp parse_segment(unquote(segment_name) <> " " <> num, file_name) do
+      [num] = Regex.run(~r/\d+/, num)
       [unquote(atom_name), String.to_integer(num), file_name]
     end
   end

@@ -49,5 +49,11 @@ defmodule Generator do
 
   def generate_instruction({:C_POP, args}), do: Pop.pop(args)
 
+  def generate_instruction({:C_LABEL, args}), do: Branching.label(args)
+
+  def generate_instruction({:C_GOTO, args}), do: Branching.goto(args)
+
+  def generate_instruction({:C_IF_GOTO, args}), do: Branching.if_goto(args)
+
   def generate_instruction(_instruction), do: ""
 end
