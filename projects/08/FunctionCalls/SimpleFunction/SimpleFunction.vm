@@ -4,7 +4,7 @@
 // File name: projects/08/FunctionCalls/SimpleFunction/SimpleFunction.vm
 
 // Performs a simple calculation and returns the result.
-function SimpleFunction.test 2
+function SimpleFunction.test 2 // inline comment to test parser
 push local 0
 push local 1
 add
@@ -13,4 +13,4 @@ push argument 0
 add
 push argument 1
 sub
-return
+return // this is a comment to make sure the parser can handle it

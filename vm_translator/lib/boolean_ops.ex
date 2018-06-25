@@ -10,12 +10,12 @@ defmodule BooleanOps do
     #{Helpers.pop_into_d_register()}
     #{Helpers.decrement_sp()}
     #{Helpers.dereference_pointer()}
-    D=D-M // If the two values are equal, D will equal 0.
-    @SP // A=0, M=266
+    D=D-M
+    @SP
     #{Helpers.dereference_pointer()}
     M=-1
-    @CONTINUE#{command_num} // Load sequence number of continue
-    D;JEQ // Jump there if the two values were equal
+    @CONTINUE#{command_num}
+    D;JEQ
     @SP
     #{Helpers.dereference_pointer()}
     M=0
@@ -30,12 +30,12 @@ defmodule BooleanOps do
     #{Helpers.pop_into_d_register()}
     #{Helpers.decrement_sp()}
     #{Helpers.dereference_pointer()}
-    D=D-M // If D was less than M, D will be negative
+    D=D-M
     @SP
     #{Helpers.dereference_pointer()}
     M=-1
-    @CONTINUE#{command_num} // Load sequence number of continue
-    D;JGT // Jump the false branch if D was less than M
+    @CONTINUE#{command_num}
+    D;JGT
     @SP
     #{Helpers.dereference_pointer()}
     M=0
@@ -50,12 +50,12 @@ defmodule BooleanOps do
     #{Helpers.pop_into_d_register()}
     #{Helpers.decrement_sp()}
     #{Helpers.dereference_pointer()}
-    D=D-M // If D was greater than M, D will be positive
+    D=D-M
     @SP
     #{Helpers.dereference_pointer()}
     M=-1
-    @CONTINUE#{command_num} // Load sequence number of continue
-    D;JLT // Jump the false branch if D was greater than
+    @CONTINUE#{command_num}
+    D;JLT
     @SP
     #{Helpers.dereference_pointer()}
     M=0
