@@ -14,88 +14,98 @@ defmodule FunctionOps do
   end
 
   def call([name, arity, call_no]) do
+    call_address = "#{name}$ret.#{call_no}"
     """
     // call #{name} #{arity} number #{call_no}
 
     // push return address using label declared below
+    @#{call_address}
+    D=A
+    #{Helpers.push_from_d_register}
+
     // push LCL pointer
+    @LCL
+    D=M
+    #{Helpers.push_from_d_register}
+
     // push ARG pointer
+    @ARG
+    D=M
+    #{Helpers.push_from_d_register}
+
     // push THIS pointer
+    @THIS
+    D=M
+    #{Helpers.push_from_d_register}
+
     // push THAT pointer
-    // reposition ARG (SP - 5 - arity)
+    @THAT
+    D=M
+    #{Helpers.push_from_d_register}
+
+    // reposition ARG (SP - (5 + arity))
+    @#{arity + 5}
+    D=A
+    @SP
+    D=M-D
+    @ARG
+    M=D
+
+    // reposition LCL = SP
+    @SP
+    D=M
+    @LCL
+    M=D
+
     // goto #{name}
+    @#{name}
+    0;JMP
+
     // set return location with label including call number
+    (#{call_address})
     """
   end
 
+  @endframe_cache_key "@R14"
+  @return_address_cache_key "@R15"
   def return() do
     """
     // return
-
-    // Store pointer to LCL in R14 (call this EndFrame)
     @LCL
     D=M
-    @R14
+    #{@endframe_cache_key}
     M=D
-
-    // Store pointer to return address in R15 (call this RetAddress)
     @5
     D=D-A
-    @R15
+    #{@return_address_cache_key}
     M=D
-
-    // move return value for caller
     #{Helpers.pop_into_d_register()}
     @ARG
     #{Helpers.dereference_pointer()}
     M=D
-
-    // reposition SP for caller (SP = ARG + 1)
     @ARG
     D=M+1
     @SP
     M=D
-
-    // THAT = *(EndFrame - 1)
-    @1
-    D=A
-    @R14
-    A=M-D
-    D=M
+    #{subtract_from_endframe(1)}
     @THAT
     M=D
-
-    // THIS = *(EndFrame - 2)
-    @2
-    D=A
-    @R14
-    A=M-D
-    D=M
+    #{subtract_from_endframe(2)}
     @THIS
     M=D
-
-    // ARG = *(EndFrame - 3)
-    @3
-    D=A
-    @R14
-    A=M-D
-    D=M
+    #{subtract_from_endframe(3)}
     @ARG
     M=D
-
-    // LCL = *(EndFrame - 4)
-    @4
-    D=A
-    @R14
-    A=M-D
-    D=M
+    #{subtract_from_endframe(4)}
     @LCL
     M=D
-
-    // goto RetAddress
-    @R15
+    #{@return_address_cache_key}
     A=M
     0;JMP
     """
+  end
+
+  defp subtract_from_endframe(num) do
+    "@#{num}\nD=A\n#{@endframe_cache_key}\nA=M-D\nD=M"
   end
 end

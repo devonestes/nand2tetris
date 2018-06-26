@@ -54,6 +54,7 @@ defmodule Pop do
 
   def pop([:POINTER, 0, _]) do
     """
+    // pop pointer 0
     #{Helpers.pop_into_d_register()}
     @THIS
     M=D
@@ -62,6 +63,7 @@ defmodule Pop do
 
   def pop([:POINTER, 1, _]) do
     """
+    // pop pointer 1
     #{Helpers.pop_into_d_register()}
     @THAT
     M=D

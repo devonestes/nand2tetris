@@ -8,15 +8,15 @@ defmodule Parser do
     end)
   end
 
-  defp parse_line("add", _, _, _), do: {:C_ADD, []}
-  defp parse_line("sub", _, _, _), do: {:C_SUB, []}
-  defp parse_line("neg", _, _, _), do: {:C_NEG, []}
-  defp parse_line("and", _, _, _), do: {:C_AND, []}
-  defp parse_line("or", _, _, _), do: {:C_OR, []}
-  defp parse_line("not", _, _, _), do: {:C_NOT, []}
-  defp parse_line("eq", _, line_no, _), do: {:C_EQ, [line_no]}
-  defp parse_line("lt", _, line_no, _), do: {:C_LT, [line_no]}
-  defp parse_line("gt", _, line_no, _), do: {:C_GT, [line_no]}
+  defp parse_line("add" <> _, _, _, _), do: {:C_ADD, []}
+  defp parse_line("sub" <> _, _, _, _), do: {:C_SUB, []}
+  defp parse_line("neg" <> _, _, _, _), do: {:C_NEG, []}
+  defp parse_line("and" <> _, _, _, _), do: {:C_AND, []}
+  defp parse_line("or" <> _, _, _, _), do: {:C_OR, []}
+  defp parse_line("not" <> _, _, _, _), do: {:C_NOT, []}
+  defp parse_line("eq" <> _, _, line_no, _), do: {:C_EQ, [line_no]}
+  defp parse_line("lt" <> _, _, line_no, _), do: {:C_LT, [line_no]}
+  defp parse_line("gt" <> _, _, line_no, _), do: {:C_GT, [line_no]}
 
   defp parse_line("pop" <> " " <> rest, file_name, _, _) do
     {:C_POP, parse_segment(rest, file_name)}

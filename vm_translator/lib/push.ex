@@ -62,6 +62,7 @@ defmodule Push do
 
   def push([:POINTER, 0, _]) do
     """
+    // push pointer 0
     @THIS
     D=M
     @SP
@@ -73,6 +74,7 @@ defmodule Push do
 
   def push([:POINTER, 1, _]) do
     """
+    // push pointer 1
     @THAT
     D=M
     @SP
